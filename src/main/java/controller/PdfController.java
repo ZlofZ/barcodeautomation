@@ -37,7 +37,7 @@ public class PdfController{
 	
 	//Resets the cropbox to contain the entire page.
 	private void uncropPage(PDPage page){
-		PDRectangle upsidedown = new PDRectangle(0, 0, page.getBBox().getWidth(), page.getBBox().getHeight());
+		PDRectangle upsidedown = new PDRectangle(0, 0, page.getCropBox().getWidth()*2, (page.getCropBox().getHeight()+150)*2);
 		page.setCropBox(upsidedown);
 		System.out.print("-");
 	}
@@ -79,7 +79,7 @@ public class PdfController{
 		PDDocument pddc = null;
 		try {
 			pddc = PDDocument.load(f);
-			System.out.println("PDF Loaded..."+pddc.getDocumentInformation().getTitle());
+			System.out.println("PDF Loaded..."+f.getName());
 			return pddc;
 		} catch (IOException e){
 			System.out.println(e.getMessage());

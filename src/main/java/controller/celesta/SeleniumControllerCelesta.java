@@ -30,11 +30,18 @@ public class SeleniumControllerCelesta{
 	
 	private DeliveryStatus getOrderInfo(){
 		System.out.println("get orderinfo");
-		By xpath = By.xpath("//*[@id=\"ctl00_ContentPlaceHolder1_ucActivitiesList_radgvActivity_ctl00__0\"]/td[8]");
+		By xpath1 = By.xpath("//*[@id=\"ctl00_ContentPlaceHolder1_ucActivitiesList_radgvActivity_ctl00__0\"]/td[8]");
+		By xpath2 = By.xpath("//*[@id=\"ctl00_ContentPlaceHolder1_ucActivitiesList_radgvActivity_ctl00\"]/tbody/tr/td[2]/div");
 		System.out.println("wait until tablerow is present");
-		wait.until(ExpectedConditions.presenceOfElementLocated(xpath));
+		wait.until(ExpectedConditions.or(ExpectedConditions.elementToBeClickable(xpath1), ExpectedConditions.presenceOfElementLocated(xpath2)));
 		System.out.println("wait over...");
-		WebElement element = driver.findElement(xpath);
+		WebElement element;
+		try{
+			element = driver.findElement(xpath1);
+			
+		} catch(Exception e){
+			return DeliveryStatus.INVALID;
+		}
 		System.out.println(element.getText());
 		switch(element.getText()){
 			case "Loaded":
@@ -51,6 +58,7 @@ public class SeleniumControllerCelesta{
 			System.out.println("["+code+"] starts with underscore");
 			code = code.substring(1);
 		}
+		if(code.equalsIgnoreCase("x") || code.equalsIgnoreCase(".") || code.equalsIgnoreCase("0")) return DeliveryStatus.INVALID;
 		enterWaybillNumberCelesta(code);
 		return getOrderInfo();
 	}
@@ -72,20 +80,24 @@ public class SeleniumControllerCelesta{
 		element.submit();
 	}
 	
-	private void loginCelesta(){
-		driver.findElement(By.id("ContentPlaceHolderLogin_loginControl_UserName")).sendKeys(CELESTA_USERNAME);
-		driver.findElement(By.id("ContentPlaceHolderLogin_loginControl_Password")).sendKeys(CELESTA_PASS);
+	private void loginCelesta(String username, String password){
+		driver.findElement(By.id("ContentPlaceHolderLogin_loginControl_UserName")).sendKeys(username);
+		driver.findElement(By.id("ContentPlaceHolderLogin_loginControl_Password")).sendKeys(password);
 		driver.findElement(By.id("ContentPlaceHolderLogin_loginControl_LoginButton")).click();
 	}
 	
-	public SeleniumControllerCelesta(){
+	public void stopDriver(){
+		driver.quit();
+	}
+	
+	public SeleniumControllerCelesta(String username, String password, String url){
 		System.setProperty("webdriver.opera.driver","p:/documents/pdfhandler/operadriver.exe");
 		driver = new OperaDriver();
 		wait  = new WebDriverWait(driver , 10);
-		driver.navigate().to(CELESTA_URL);
+		driver.navigate().to(url);
 		driver.manage().window().setPosition(new Point(-1920, 0));
 		driver.manage().window().maximize();
-		loginCelesta();
+		loginCelesta(username, password);
 		setNoFilterCelesta();
 	}
 }

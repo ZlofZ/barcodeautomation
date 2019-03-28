@@ -61,8 +61,14 @@ public class SeleniumControllerKaukokiito{
 		String status = getDeliveryStatus();
 		return checkStatus(status);
 	}
+	
+	public void stopDriver(){
+		driver.quit();
+	}
 	public SeleniumControllerKaukokiito(IOController ioc){
 		io = ioc;
+		//System.setProperty("webdriver.chrome.driver" , io.getLaunchPath()+"chromedriver.exe");
+		//driver = new ChromeDriver();
 		System.setProperty("webdriver.opera.driver" , io.getLaunchPath()+"operadriver.exe");
 		driver = new OperaDriver();
 		driver.manage().window().setPosition(new Point(-1920, 0));

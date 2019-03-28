@@ -13,9 +13,8 @@ import java.util.*;
 public class IOController {
 	private Scanner kb;
 	private Robot robot;
-	//private  final String LAUNCHPATH = "p:/documents/pdfhandler/";
-	private String LAUNCHPATH;
-	private String cPass, cUname;
+	//private  final String launchpath = "p:/documents/pdfhandler/";
+	private String cPass, cUname, cUrl, launchpath, lastHandled;
 	
 	//Read ints read int from commandline
 	public int readInt(){
@@ -35,34 +34,44 @@ public class IOController {
 		return this.cPass;
 	}
 	public String getLaunchPath(){
-		return this.LAUNCHPATH;
+		return this.launchpath;
+	}
+	public String getCelestaUrl(){
+		return this.cUrl;
+	}
+	
+	public String getLastHandled(){
+		return this.lastHandled;
 	}
 	
 	private void checkRequiredDirsPresent(){
 		File[] dirs = findDirs("");
 		String csvDir = "csv", waybillDir =  "waybills", outputDir = "pdfout";
-		File a = new File(LAUNCHPATH+csvDir);
+		File a = new File(launchpath +csvDir);
 		System.out.println(a.getName());
 		if(!a.exists()) a.mkdir();
-		a = new File(LAUNCHPATH+waybillDir);
+		a = new File(launchpath +waybillDir);
 		System.out.println(a.getName());
 		if(!a.exists()) a.mkdir();
-		a = new File(LAUNCHPATH+outputDir);
+		a = new File(launchpath +outputDir);
 		System.out.println(a.getName());
 		if(!a.exists()) a.mkdir();
 	}
 	
 	private void loadSecret(){
-		ArrayList<String> lines = loadTxt(new File(LAUNCHPATH+"client.secret"));
+		ArrayList<String> lines = loadTxt(new File(launchpath +"client.secret"));
 		for(String s: lines){
 			if(s.startsWith("username")){
 				this.cUname = s.substring(9);
 			}else if(s.startsWith("password")){
 				this.cPass=s.substring(9);
-			}else if(s.startsWith("current-directory")){
-				this.LAUNCHPATH=s.substring(18);
+			}else if(s.startsWith("celesta-url")){
+				this.cUrl = s.substring(12);
 			}
 		}
+	}
+	private String loadLastHandled(){
+		return loadTxt(new File(launchpath+"lasthandled.txt")).get(0);
 	}
 	
 	//read Txtfile line by line
@@ -77,7 +86,8 @@ public class IOController {
 				line  = br.readLine();
 			}
 		} catch (IOException e){
-			System.out.println("Could not read text from file: " + f.getName());
+			System.out.println("Could not read text from file: " + f.getAbsolutePath());
+			System.out.println(e.getMessage());
 			System.exit(-1);
 		}
 		return bc;
@@ -135,7 +145,7 @@ public class IOController {
 	
 	//Finds directories
 	public File[] findDirs(String startDir){
-		File dir = new File(LAUNCHPATH+startDir);
+		File dir = new File(launchpath +startDir);
 		return dir.listFiles();
 	}
 	
@@ -144,7 +154,7 @@ public class IOController {
 		return searchDirectory(fileType, fileType);
 	}
 	public File[] searchDirectory(String fileType, String path){
-		File dir = new File(LAUNCHPATH+path);
+		File dir = new File(launchpath +path);
 		System.out.println(dir.getAbsolutePath());
 		File[] matchingFiles = dir.listFiles(new FilenameFilter() {
 			@Override
@@ -179,8 +189,8 @@ public class IOController {
 	//Saves barcodes to file
 	public void saveBarCodes(ArrayList<String> barcodes){
 		try{
-			File output1 = new File(LAUNCHPATH+"txt/Barcodes.txt");
-			File output2 = new File(LAUNCHPATH+"txt/bcnpage.txt");
+			File output1 = new File(launchpath +"txt/Barcodes.txt");
+			File output2 = new File(launchpath +"txt/bcnpage.txt");
 			FileOutputStream fos1 = new FileOutputStream(output1);
 			FileOutputStream fos2 = new FileOutputStream(output2);
 			
@@ -309,9 +319,25 @@ public class IOController {
 		System.out.println();
 	}
 	
+	public void saveLastHandled(String lastHandled){
+		if(lastHandled.isEmpty()){
+			System.out.println("No Pdfs handled.");
+			return;
+		}
+		try{
+			PrintWriter writer = new PrintWriter("lasthandled.txt");
+			writer.println(lastHandled);
+			writer.close();
+		}catch(IOException e){
+			System.out.println(e.getMessage());
+		}
+	}
+	
 	public IOController(String path){
-		LAUNCHPATH = path+"/";
+		launchpath = path+"/";
 		loadSecret();
+		this.lastHandled=loadLastHandled();
+		System.out.println(launchpath+"\n"+cUname+"\n"+cPass+"\n"+cUrl);
 		kb = new Scanner(System.in);
 		try{
 			robot = new Robot();
